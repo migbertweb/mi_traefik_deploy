@@ -1,0 +1,48 @@
+---
+services:
+  # traefik container
+  traefik:
+    image: traefik:latest # still in beta, use v2.9.6 for stable version
+    container_name: traefik
+    restart: unless-stopped
+    environment:
+      CF_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN} # Alternativa usar variable de entorno desde el archivo .env (menos seguro, comentar la línea anterior)
+      TZ: ${TIMEZONE}
+    env_file: .env # use .env # Usa variables de entorno desde un archivo llamado .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # It's not recommended mounting the docker socket into a container -> see https://github.com/wollomatic/traefik2-hardened
+      - ./datos/traefik.yaml:/etc/traefik/traefik.yaml:ro # static traefik configuration
+      - ./datos/dynamic.yaml:/etc/traefik/dynamic.yaml:ro # dynamic traefik configuration
+      - ./datos/acme.json:/etc/traefik/acme.json # TLS certificate storage
+      - ./datos/acme-cloudflare.json:/etc/traefik/acme-cloudflare.json # TLS certificate storage
+      - ../logs:/var/log/traefik # Carpeta de logs
+      - ../logs/traefik.log:/logs/traefik.log # Carpeta de logs
+    secrets:
+      - basic_auth_credentials
+    labels:
+      - "traefik.enable=true"
+      # define traefik dashboard router and service
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)" # change hostname!
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik.entrypoints=web-secure"
+      - "traefik.http.routers.traefik.middlewares=chain-basic-auth@file"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+    networks:
+      - traefik-servicenet
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Expone el puerto 8080 para administración y métricas
+
+secrets:
+  basic_auth_credentials:
+    file: ./basic_auth_credentials
+networks:
+  traefik-servicenet:
+    external: true
+    name:
+      traefik-servicenet
+      # create this network before running this deployment:
+      # docker network create traefik-servicenet

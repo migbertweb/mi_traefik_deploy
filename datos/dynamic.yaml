@@ -1,0 +1,84 @@
+---
+# set more secure TLS options,
+# see https://doc.traefik.io/traefik/v2.5/https/tls/
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+
+http:
+  ###########################
+  # define middlewares
+  middlewares:
+    chain-basic:
+      chain:
+        middlewares:
+          - rate-limit
+          - secure-Headers
+          - autodetectContenttype
+
+    chain-basic-auth:
+      chain:
+        middlewares:
+          - rate-limit
+          - secure-Headers
+          - basic-auth
+          - autodetectContenttype
+    # Autenticacion basica
+    basic-auth:
+      basicAuth:
+        usersFile: "/run/secrets/basic_auth_credentials"
+        realm: "Traefik 3 Basic Auth"
+    # establecer cabeceras de seguridad
+    secure-Headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          # prevent some applications to expose too much information by removing thise headers:
+          server: ""
+          x-powered-by: ""
+        sslRedirect: true # Fuerza redirección a HTTPS
+        # sslProxyHeaders:
+        #   X-Forwarded-Proto: "https" # Asegura que Cloudflare pase el esquema correcto
+    # limitar las solicitudes por cliente
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+    # autodetectar el contentType
+    autodetectContenttype: # needed for traefik v3 - see https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3/
+      contentType: {}
+    # Middleware para las cabeceras de seguridad (configuración previa)
+    nextcloud-headers:
+      headers:
+        # forwardedHeaders:
+        #   trustedIPs:
+        #     - "127.0.0.1/32"
+        #     - "82.112.244.132"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Host: "nextcloud.migbertweb.xyz" # Reemplaza con tu dominio
+          X-Forwarded-For: "$proxy_add_x_forwarded_for"
+    # Middleware para redirección de CalDAV/CardDAV (nueva configuración)
+    nextcloud-redirectregex:
+      redirectRegex:
+        permanent: true # Redirección permanente (HTTP 301)
+        regex: "https://nextcloud.migbertweb.xyz/.well-known/(?:card|cal)dav" # Expresión regular
+        replacement: "https://nextcloud.migbertweb.xyz/remote.php/dav" # Reemplazo
+

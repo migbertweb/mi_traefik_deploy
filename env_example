@@ -1,0 +1,8 @@
+# Token Cloudflare
+CLOUDFLARE_API_TOKEN=
+# Email
+EMAIL=
+# Dominio base
+DOMAIN=
+# Zona horaria
+TIMEZONE=America/Sao_Paulo

@@ -1,0 +1,87 @@
+---
+providers:
+  docker:
+    exposedByDefault: false
+    endpoint: "unix:///var/run/docker.sock"
+    network: traefik-servicenet
+  file:
+    filename: /etc/traefik/dynamic.yaml
+    watch: true
+
+api:
+  dashboard: true # if you don't need the dashboard disable it
+  insecure: false # Permite acceso sin HTTPS (asegúrate de restringirlo en producción)
+
+entryPoints:
+  web:
+    address: ":80" # http
+    http:
+      redirections:
+        entryPoint:
+          to: web-secure
+          scheme: https
+          permanent: true
+  web-secure:
+    address: ":443" # https
+  traefik:
+    address: ":8080" # Nuevo entryPoint para administración y métricas
+
+certificatesResolvers:
+  tlschallenge:
+    acme:
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # IMPORTANT: comment out this line to get production ready certificates. After this, clear acme.json file.
+      email: ${EMAIL}
+      storage: /etc/traefik/acme.json # chmod 600 this file on the host system
+      tlsChallenge: {}
+  cloudflare:
+    acme:
+      email: ${EMAIL}
+      storage: /etc/traefik/acme-cloudflare.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false # disable this if you don't want to send anonymous usage data to traefik
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    buckets:
+      - 0.1
+      - 0.3
+      - 1.2
+      - 5.0
+
+accessLog:
+  filePath: "/var/log/traefik/access.log" # Archivo donde se almacenarán los logs de acceso
+  format: json # Opcional: formato JSON para los logs
+  bufferingSize: 100
+  filters:
+    statusCodes:
+      - "200-299" # Solo códigos 2xx (éxito)
+      - "400-499" # Errores del cliente
+      - "500-599" # Errores del servidor
+
+  # Campos estándar (fields)
+  fields:
+    defaultMode: drop # Borrar todos los campos por defecto
+    names:
+      ClientHost: keep # Incluir la dirección IP del cliente
+      Duration: keep # Incluir la duración de la solicitud
+      DownstreamStatus: keep # Incluir el código de estado HTTP
+      RequestHost: keep # Incluir el host objetivo
+      TLSVersion: keep # Incluir la versión de TLS (si aplica)
+      StartLocal: keep # Incluir la fecha y hora de la solicitud
+      serviceName: keep # Nombre del servicio en Traefik
+
+log:
+  level: WARN # Nivel de logs para Traefik (puede ser DEBUG, INFO, WARN, ERROR)
+  filePath:
+    "/logs/traefik.log"
+    # Desactiva rotación interna
+  format: json # Opcional: Formato JSON para mejor manejo
+
