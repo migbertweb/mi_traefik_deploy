@@ -2,12 +2,7 @@
 
 <!--toc:start-->
 
-- [mytraefik_deploy](#mytraefikdeploy)
-- [Pasos Iniciales](#pasos-iniciales)
-- [crear esta red docker antes de correr el servicio](#crear-esta-red-docker-antes-de-correr-el-servicio)
-- [crear los archivos para los certificados](#crear-los-archivos-para-los-certificados)
-- [crear el archivo con las credenciales para autenticacion basic_auth_credentials](#crear-el-archivo-con-las-credenciales-para-autenticacion-basicauthcredentials)
-- [Iniciar el servicio](#iniciar-el-servicio)
+- [my traefik deploy](#my-traefik-deploy) - [Pasos Iniciales](#pasos-iniciales) - [crear esta red docker antes de correr el servicio](#crear-esta-red-docker-antes-de-correr-el-servicio) - [crear los archivos para los certificados](#crear-los-archivos-para-los-certificados) - [crear el archivo con las credenciales para autenticacion basic_auth_credentials](#crear-el-archivo-con-las-credenciales-para-autenticacion-basicauthcredentials) - [Iniciar el servicio](#iniciar-el-servicio)
 <!--toc:end-->
 
 ### Pasos Iniciales
