@@ -64,21 +64,3 @@ http:
     # autodetectar el contentType
     autodetectContenttype: # needed for traefik v3 - see https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3/
       contentType: {}
-    # Middleware para las cabeceras de seguridad (configuración previa)
-    nextcloud-headers:
-      headers:
-        # forwardedHeaders:
-        #   trustedIPs:
-        #     - "127.0.0.1/32"
-        #     - "82.112.244.132"
-        customRequestHeaders:
-          X-Forwarded-Proto: "https"
-          X-Forwarded-Host: "nextcloud.migbertweb.xyz" # Reemplaza con tu dominio
-          X-Forwarded-For: "$proxy_add_x_forwarded_for"
-    # Middleware para redirección de CalDAV/CardDAV (nueva configuración)
-    nextcloud-redirectregex:
-      redirectRegex:
-        permanent: true # Redirección permanente (HTTP 301)
-        regex: "https://nextcloud.migbertweb.xyz/.well-known/(?:card|cal)dav" # Expresión regular
-        replacement: "https://nextcloud.migbertweb.xyz/remote.php/dav" # Reemplazo
-

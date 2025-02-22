@@ -5,7 +5,8 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     network: traefik-servicenet
   file:
-    filename: /etc/traefik/dynamic.yaml
+    directory: "/etc/traefik/dynamic_conf"
+    # filename: /etc/traefik/dynamic.yaml
     watch: true
 
 api:
@@ -27,12 +28,15 @@ entryPoints:
     address: ":8080" # Nuevo entryPoint para administración y métricas
 
 certificatesResolvers:
+  # certificados tlschallenge, guardados en el archivo acme.json
   tlschallenge:
     acme:
-      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # IMPORTANT: comment out this line to get production ready certificates. After this, clear acme.json file.
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      # # IMPORTANT: comment out this line to get production ready certificates. After this, clear acme.json file.
       email: ${EMAIL}
       storage: /etc/traefik/acme.json # chmod 600 this file on the host system
       tlsChallenge: {}
+  # certificados cloudflare por dnsChallenge, guardados en el archivo acme-cloudflare.json
   cloudflare:
     acme:
       email: ${EMAIL}
